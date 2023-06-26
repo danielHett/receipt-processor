@@ -24,7 +24,7 @@ type ProcessRequest struct {
 }
 
 type ProcessResponse struct {
-	Id string
+	Id string `json:"id"`
 }
 
 type Item struct {
@@ -33,7 +33,7 @@ type Item struct {
 }
 
 type PointsResponse struct {
-	Points int64
+	Points int64 `json:"points"`
 }
 
 const (
@@ -76,10 +76,15 @@ func processHandler(db *memdb.MemDB, res http.ResponseWriter, req *http.Request)
 
 	var processReponse ProcessResponse
 	processReponse.Id = receiptID
+	jData, err := json.Marshal(processReponse)
+	if err != nil {
+		respond(http.StatusBadRequest, []byte(ServerErrorResponse), res)
+		return
+	}
 
 	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(http.StatusOK)
-	json.NewEncoder(res).Encode(processReponse)
+	res.Write(jData)
 }
 
 func pointsHandler(db *memdb.MemDB, res http.ResponseWriter, req *http.Request) {
@@ -100,11 +105,16 @@ func pointsHandler(db *memdb.MemDB, res http.ResponseWriter, req *http.Request) 
 
 	var pointsResponse PointsResponse
 	pointsResponse.Points = raw.(*StoredReceipt).Points
+	jData, err := json.Marshal(pointsResponse)
+	if err != nil {
+		respond(http.StatusBadRequest, []byte(ServerErrorResponse), res)
+		return
+	}
 
 	// Send response to the client.
 	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(http.StatusOK)
-	json.NewEncoder(res).Encode(pointsResponse)
+	res.Write(jData)
 }
 
 func calculatePoints(processRequest *ProcessRequest) (int64, bool) {
