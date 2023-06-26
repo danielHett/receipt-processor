@@ -7,8 +7,6 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// Create the database.
-
 func main() {
 	db := createDB()
 	router := chi.NewRouter()
