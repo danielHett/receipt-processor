@@ -1,14 +1,47 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/hashicorp/go-memdb"
 )
+
+/**
+* Creates a new instance of the database for the receipt processor.
+ */
+func createDB() *memdb.MemDB {
+	var schema = &memdb.DBSchema{
+		Tables: map[string]*memdb.TableSchema{
+			"receipt": &memdb.TableSchema{
+				Name: "receipt",
+				Indexes: map[string]*memdb.IndexSchema{
+					"id": &memdb.IndexSchema{
+						Name:    "id",
+						Unique:  true,
+						Indexer: &memdb.UUIDFieldIndex{Field: "Id"},
+					},
+					"points": &memdb.IndexSchema{
+						Name:    "points",
+						Unique:  false,
+						Indexer: &memdb.IntFieldIndex{Field: "Points"},
+					},
+				},
+			},
+		},
+	}
+
+	db, err := memdb.NewMemDB(schema)
+	if err != nil {
+		panic(err)
+	}
+
+	return db
+}
 
 func getRetailerPoints(s *string) int64 {
 	var count int64 = 0
@@ -62,13 +95,12 @@ func getItemPoints(item *Item) (int64, bool) {
 }
 
 func getPurchaseDayPoints(date *string) (int64, bool) {
-	r := regexp.MustCompile("\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])")
+	r := regexp.MustCompile("^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$")
 	if !r.Match([]byte(*date)) {
 		return 0, true
 	}
 
 	day, _ := strconv.ParseInt(strings.Split(*date, "-")[2], 10, 64)
-
 	if day%2 == 1 {
 		return 6, false
 	} else {
@@ -85,9 +117,6 @@ func getPurchaseTimePoints(time *string) (int64, bool) {
 	splitTime := strings.Split(*time, ":")
 	hour, _ := strconv.ParseInt(splitTime[0], 10, 64)
 	minute, _ := strconv.ParseInt(splitTime[1], 10, 64)
-
-	fmt.Println(hour)
-	fmt.Println(minute)
 
 	isAfter2 := hour > 14 || (hour == 14 && minute > 0)
 	isBefore4 := hour < 16

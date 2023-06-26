@@ -2,11 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-memdb"
 )
@@ -42,38 +41,6 @@ const (
 	ReceiptNotFoundResponse = "No receipt found for that id"
 	ServerErrorResponse     = "Server error"
 )
-
-/**
-* Creates a new instance of the database for the receipt processor.
- */
-func createDB() *memdb.MemDB {
-	var schema = &memdb.DBSchema{
-		Tables: map[string]*memdb.TableSchema{
-			"receipt": &memdb.TableSchema{
-				Name: "receipt",
-				Indexes: map[string]*memdb.IndexSchema{
-					"id": &memdb.IndexSchema{
-						Name:    "id",
-						Unique:  true,
-						Indexer: &memdb.UUIDFieldIndex{Field: "Id"},
-					},
-					"points": &memdb.IndexSchema{
-						Name:    "points",
-						Unique:  false,
-						Indexer: &memdb.IntFieldIndex{Field: "Points"},
-					},
-				},
-			},
-		},
-	}
-
-	db, err := memdb.NewMemDB(schema)
-	if err != nil {
-		panic(err)
-	}
-
-	return db
-}
 
 /**
 * Handler for the /receipt/process path.
@@ -116,15 +83,16 @@ func processHandler(db *memdb.MemDB, res http.ResponseWriter, req *http.Request)
 }
 
 func pointsHandler(db *memdb.MemDB, res http.ResponseWriter, req *http.Request) {
-	receiptId, err := uuid.Parse(chi.URLParam(req, "receiptId"))
+	urlParts := strings.Split(req.URL.String(), "/")
+	receiptId := urlParts[2]
+	_, err := uuid.Parse(receiptId)
 	if err != nil {
 		respond(http.StatusNotFound, []byte(ReceiptNotFoundResponse), res)
 		return
 	}
 
 	txn := db.Txn(false)
-	raw, err := txn.First("receipt", "id", receiptId.String())
-	fmt.Println(raw)
+	raw, err := txn.First("receipt", "id", receiptId)
 	if err != nil || raw == nil {
 		respond(http.StatusNotFound, []byte(ReceiptNotFoundResponse), res)
 		return
@@ -153,7 +121,11 @@ func calculatePoints(processRequest *ProcessRequest) (int64, bool) {
 	var total int64 = 0
 
 	total += getRetailerPoints(processRequest.Retailer)
+
 	// Get the points for the number of items on the receipt.
+	if len(*processRequest.Items) == 0 {
+		return 0, true
+	}
 	total += 5 * int64(len(*processRequest.Items)/2)
 
 	points, err := getTotalPoints(processRequest.Total)
