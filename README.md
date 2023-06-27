@@ -1,1 +1,2 @@
-# receipt-processor
+# receipt-processor  
+This repository hosts a solution to the [receipt-processor-challenge](https://github.com/fetch-rewards/receipt-processor-challenge) written in Go. To **get started**, you can run `go test` to verify that the receipt-processor code is working correctly. After running the tests, the command `go run . [OPTIONAL_PORT]` will start up the server on your machine on the port provided in the arguments (or on 8080 if no port is provided). 

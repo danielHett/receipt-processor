@@ -193,28 +193,28 @@ func TestProcessHandler_CorrectRetailerPoints(t *testing.T) {
 
 	data, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		t.Errorf("Recieved error while reading body")
+		t.Error("Recieved error while reading body")
 	}
 
 	var processResponse ProcessResponse
 	err = json.Unmarshal(data, &processResponse)
 	if err != nil {
-		t.Errorf("Recieved error while unmarshaling")
+		t.Error("Recieved error while unmarshaling")
 	}
 
 	_, err = uuid.Parse(processResponse.Id)
 	if err != nil {
-		t.Errorf("Reponse body was not a valid UUID")
+		t.Error("Reponse body was not a valid UUID")
 	}
 
 	txn := testDB.Txn(false)
 	raw, err := txn.First("receipt", "id", processResponse.Id)
 	if err != nil || raw == nil {
-		t.Errorf("UUID not found in the DB")
+		t.Error("UUID not found in the DB")
 	}
 
 	if raw.(*StoredReceipt).Points != 17 {
-		t.Errorf("Invalid points")
+		t.Error("Invalid points")
 	}
 }
 
@@ -242,28 +242,28 @@ func TestProcessHandler_CorrectDatePoints(t *testing.T) {
 
 	data, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		t.Errorf("Recieved error while reading body")
+		t.Error("Recieved error while reading body")
 	}
 
 	var processResponse ProcessResponse
 	err = json.Unmarshal(data, &processResponse)
 	if err != nil {
-		t.Errorf("Recieved error while unmarshaling")
+		t.Error("Recieved error while unmarshaling")
 	}
 
 	_, err = uuid.Parse(processResponse.Id)
 	if err != nil {
-		t.Errorf("Reponse body was not a valid UUID")
+		t.Error("Reponse body was not a valid UUID")
 	}
 
 	txn := testDB.Txn(false)
 	raw, err := txn.First("receipt", "id", processResponse.Id)
 	if err != nil || raw == nil {
-		t.Errorf("UUID not found in the DB")
+		t.Error("UUID not found in the DB")
 	}
 
 	if raw.(*StoredReceipt).Points != 6 {
-		t.Errorf("Invalid points")
+		t.Error("Invalid points")
 	}
 }
 
@@ -291,28 +291,28 @@ func TestProcessHandler_CorrectTimePoints(t *testing.T) {
 
 	data, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		t.Errorf("Recieved error while reading body")
+		t.Error("Recieved error while reading body")
 	}
 
 	var processResponse ProcessResponse
 	err = json.Unmarshal(data, &processResponse)
 	if err != nil {
-		t.Errorf("Recieved error while unmarshaling")
+		t.Error("Recieved error while unmarshaling")
 	}
 
 	_, err = uuid.Parse(processResponse.Id)
 	if err != nil {
-		t.Errorf("Reponse body was not a valid UUID")
+		t.Error("Reponse body was not a valid UUID")
 	}
 
 	txn := testDB.Txn(false)
 	raw, err := txn.First("receipt", "id", processResponse.Id)
 	if err != nil || raw == nil {
-		t.Errorf("UUID not found in the DB")
+		t.Error("UUID not found in the DB")
 	}
 
 	if raw.(*StoredReceipt).Points != 10 {
-		t.Errorf("Invalid points")
+		t.Error("Invalid points")
 	}
 }
 
@@ -344,28 +344,28 @@ func TestProcessHandler_CorrectNumberOfItemsPoints(t *testing.T) {
 
 	data, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		t.Errorf("Recieved error while reading body")
+		t.Error("Recieved error while reading body")
 	}
 
 	var processResponse ProcessResponse
 	err = json.Unmarshal(data, &processResponse)
 	if err != nil {
-		t.Errorf("Recieved error while unmarshaling")
+		t.Error("Recieved error while unmarshaling")
 	}
 
 	_, err = uuid.Parse(processResponse.Id)
 	if err != nil {
-		t.Errorf("Reponse body was not a valid UUID")
+		t.Error("Reponse body was not a valid UUID")
 	}
 
 	txn := testDB.Txn(false)
 	raw, err := txn.First("receipt", "id", processResponse.Id)
 	if err != nil || raw == nil {
-		t.Errorf("UUID not found in the DB")
+		t.Error("UUID not found in the DB")
 	}
 
 	if raw.(*StoredReceipt).Points != 5 {
-		t.Errorf("Invalid points")
+		t.Error("Invalid points")
 	}
 }
 
@@ -393,28 +393,28 @@ func TestProcessHandler_CorrectItemsPoints(t *testing.T) {
 
 	data, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		t.Errorf("Recieved error while reading body")
+		t.Error("Recieved error while reading body")
 	}
 
 	var processResponse ProcessResponse
 	err = json.Unmarshal(data, &processResponse)
 	if err != nil {
-		t.Errorf("Recieved error while unmarshaling")
+		t.Error("Recieved error while unmarshaling")
 	}
 
 	_, err = uuid.Parse(processResponse.Id)
 	if err != nil {
-		t.Errorf("Reponse body was not a valid UUID")
+		t.Error("Reponse body was not a valid UUID")
 	}
 
 	txn := testDB.Txn(false)
 	raw, err := txn.First("receipt", "id", processResponse.Id)
 	if err != nil || raw == nil {
-		t.Errorf("UUID not found in the DB")
+		t.Error("UUID not found in the DB")
 	}
 
 	if raw.(*StoredReceipt).Points != 2 {
-		t.Errorf("Invalid points")
+		t.Error("Invalid points")
 	}
 }
 
@@ -442,28 +442,28 @@ func TestProcessHandler_CorrectTotalPoints(t *testing.T) {
 
 	data, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		t.Errorf("Recieved error while reading body")
+		t.Error("Recieved error while reading body")
 	}
 
 	var processResponse ProcessResponse
 	err = json.Unmarshal(data, &processResponse)
 	if err != nil {
-		t.Errorf("Recieved error while unmarshaling")
+		t.Error("Recieved error while unmarshaling")
 	}
 
 	_, err = uuid.Parse(processResponse.Id)
 	if err != nil {
-		t.Errorf("Reponse body was not a valid UUID")
+		t.Error("Reponse body was not a valid UUID")
 	}
 
 	txn := testDB.Txn(false)
 	raw, err := txn.First("receipt", "id", processResponse.Id)
 	if err != nil || raw == nil {
-		t.Errorf("UUID not found in the DB")
+		t.Error("UUID not found in the DB")
 	}
 
 	if raw.(*StoredReceipt).Points != 75 {
-		t.Errorf("Invalid points")
+		t.Error("Invalid points")
 	}
 }
 
@@ -503,28 +503,28 @@ func TestProcessHandler_CorrectForRealReceipt(t *testing.T) {
 
 	data, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		t.Errorf("Recieved error while reading body")
+		t.Error("Recieved error while reading body")
 	}
 
 	var processResponse ProcessResponse
 	err = json.Unmarshal(data, &processResponse)
 	if err != nil {
-		t.Errorf("Recieved error while unmarshaling")
+		t.Error("Recieved error while unmarshaling")
 	}
 
 	_, err = uuid.Parse(processResponse.Id)
 	if err != nil {
-		t.Errorf("Reponse body was not a valid UUID")
+		t.Error("Reponse body was not a valid UUID")
 	}
 
 	txn := testDB.Txn(false)
 	raw, err := txn.First("receipt", "id", processResponse.Id)
 	if err != nil || raw == nil {
-		t.Errorf("UUID not found in the DB")
+		t.Error("UUID not found in the DB")
 	}
 
 	if raw.(*StoredReceipt).Points != 28 {
-		t.Errorf("Invalid points")
+		t.Error("Invalid points")
 	}
 }
 
@@ -572,7 +572,7 @@ func TestPointsHandler_ReturnsPoints(t *testing.T) {
 	var pointsResponse PointsResponse
 	json.Unmarshal(data, &pointsResponse)
 	if pointsResponse.Points != 28 {
-		t.Errorf("Invalid points")
+		t.Error("Invalid points")
 	}
 }
 

@@ -1,3 +1,8 @@
+/**
+* This file contains the handlers for the two server endpoints. All helper code is
+* defined seperately in the utils.go file.
+ */
+
 package main
 
 import (
@@ -10,11 +15,13 @@ import (
 	"github.com/hashicorp/go-memdb"
 )
 
+// Key-Value pair that is stored in the DB.
 type StoredReceipt struct {
 	Id     string
 	Points int64
 }
 
+// Below two model incoming requests to the receipts/process endpoint. It represents a receipt.
 type ProcessRequest struct {
 	Retailer     *string
 	PurchaseDate *string
@@ -23,15 +30,17 @@ type ProcessRequest struct {
 	Total        *string
 }
 
-type ProcessResponse struct {
-	Id string `json:"id"`
-}
-
 type Item struct {
 	ShortDescription *string
 	Price            *string
 }
 
+// Models a response to the receipts/process endpoint.
+type ProcessResponse struct {
+	Id string `json:"id"`
+}
+
+// Models a response to the receipts/{id}/points endpoint.
 type PointsResponse struct {
 	Points int64 `json:"points"`
 }
@@ -59,13 +68,15 @@ func processHandler(db *memdb.MemDB, res http.ResponseWriter, req *http.Request)
 		return
 	}
 
+	// Create a random id for the receipt, get the points from the body.
 	receiptID := uuid.New().String()
-	receiptPoints, isIncorrectBody := calculatePoints(processRequest)
-	if isIncorrectBody {
+	receiptPoints, isErr := calculatePoints(processRequest)
+	if isErr {
 		respond(400, []byte(InvalidBodyResponse), res)
 		return
 	}
 
+	// Set up a transaction and store the id, points as a key-val pair in the DB.
 	txn := db.Txn(true)
 	err = txn.Insert("receipt", &StoredReceipt{receiptID, receiptPoints})
 	if err != nil {
@@ -74,6 +85,7 @@ func processHandler(db *memdb.MemDB, res http.ResponseWriter, req *http.Request)
 	}
 	txn.Commit()
 
+	// Send the id back to the client.
 	var processReponse ProcessResponse
 	processReponse.Id = receiptID
 	jData, err := json.Marshal(processReponse)
@@ -87,22 +99,30 @@ func processHandler(db *memdb.MemDB, res http.ResponseWriter, req *http.Request)
 	res.Write(jData)
 }
 
+/**
+* Handler for the /receipt/{id}/points path.
+ */
 func pointsHandler(db *memdb.MemDB, res http.ResponseWriter, req *http.Request) {
+	// Get the id from the path.
 	urlParts := strings.Split(req.URL.String(), "/")
 	receiptId := urlParts[2]
 	_, err := uuid.Parse(receiptId)
 	if err != nil {
+		// There wasn't a valid uuid.
 		respond(http.StatusNotFound, []byte(ReceiptNotFoundResponse), res)
 		return
 	}
 
+	// Try retrieving the points from the db.
 	txn := db.Txn(false)
 	raw, err := txn.First("receipt", "id", receiptId)
 	if err != nil || raw == nil {
+		// Couldn't find the id.
 		respond(http.StatusNotFound, []byte(ReceiptNotFoundResponse), res)
 		return
 	}
 
+	// Put the retrieved points in a response.
 	var pointsResponse PointsResponse
 	pointsResponse.Points = raw.(*StoredReceipt).Points
 	jData, err := json.Marshal(pointsResponse)
@@ -115,54 +135,4 @@ func pointsHandler(db *memdb.MemDB, res http.ResponseWriter, req *http.Request) 
 	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(http.StatusOK)
 	res.Write(jData)
-}
-
-func calculatePoints(processRequest *ProcessRequest) (int64, bool) {
-	// Make sure all required fields are present.
-	if processRequest.Retailer == nil ||
-		processRequest.PurchaseDate == nil ||
-		processRequest.PurchaseTime == nil ||
-		processRequest.Items == nil ||
-		processRequest.Total == nil {
-
-		return 0, true
-	}
-
-	var total int64 = 0
-
-	total += getRetailerPoints(processRequest.Retailer)
-
-	// Get the points for the number of items on the receipt.
-	if len(*processRequest.Items) == 0 {
-		return 0, true
-	}
-	total += 5 * int64(len(*processRequest.Items)/2)
-
-	points, err := getTotalPoints(processRequest.Total)
-	if err {
-		return 0, true
-	}
-	total += points
-
-	for _, item := range *processRequest.Items {
-		points, err := getItemPoints(&item)
-		if err {
-			return 0, true
-		}
-		total += points
-	}
-
-	points, err = getPurchaseTimePoints(processRequest.PurchaseTime)
-	if err {
-		return 0, true
-	}
-	total += points
-
-	points, err = getPurchaseDayPoints(processRequest.PurchaseDate)
-	if err {
-		return 0, true
-	}
-	total += points
-
-	return total, false
 }
